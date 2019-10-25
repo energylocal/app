@@ -35,13 +35,13 @@ if ($session["write"]) {
         }
     }
 
-    $menu['tabs'][] = array(
+    /*$menu['tabs'][] = array(
         'icon'=>'apps',
         'text'=> _("Apps"),
         'path'=> 'app/view',
         'order'=> 2,
         'data'=> array('sidebar' => '#sidebar_apps')
-    );
+    );*/
 
 
     $menu['sidebar']['apps'][] = array(
