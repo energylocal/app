@@ -1,6 +1,5 @@
 <?php
-    global $path, $session;
-    $v = 8;
+    global $path, $session, $v;
 ?>
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
 <link href="<?php echo $path; ?>Modules/app/Views/css/dark.css?v=<?php echo $v; ?>" rel="stylesheet">
@@ -162,7 +161,7 @@ $(window).ready(function(){
     $("#footer").css('background-color','#181818');
     $("#footer").css('color','#999');
 });
-if (!sessionwrite) $(".openconfig").hide();
+if (!sessionwrite) $(".config-open").hide();
 
 // ----------------------------------------------------------------------
 // Configuration

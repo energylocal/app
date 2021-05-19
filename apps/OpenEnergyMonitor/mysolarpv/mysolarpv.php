@@ -1,10 +1,52 @@
 <?php
-    global $path, $session;
-    $v = 8;
+    global $path, $session, $v;
 ?>
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
 <link href="<?php echo $path; ?>Modules/app/Views/css/dark.css?v=<?php echo $v; ?>" rel="stylesheet">
+<style>
+/* mobile version offset is default */
+.chart-placeholder {
+    --height-offset: 24rem;
+}
 
+/*
+--------------
+    adjust the full height offset for other specific devices
+    based on width,height,orientation or dpi 
+    @see: list of popular devices... https://css-tricks.com/snippets/css/media-queries-for-standard-devices/
+-----------------
+*/
+
+/* ----------- bootstrap break points ----------- */
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+    .chart-placeholder { --height-offset: 25rem; }
+}
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+    .chart-placeholder { --height-offset: 26rem; }
+}
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+    .chart-placeholder { --height-offset: 27rem; }
+}
+/* DEVICE SPECIFIC: */
+/* ----------- Galaxy Tab 2 ----------- */
+/* Portrait and Landscape */
+@media (min-device-width: 800px) 
+  and (max-device-width: 1280px) {
+    .chart-placeholder {
+        --height-offset: 27rem;
+    }
+}
+
+
+/* set chart height to full screen height (100vh) minus an offset to cover the large value indicators and menus */
+.chart-placeholder > * {
+    height: calc(100vh - var(--height-offset))!important;
+    min-height:180px;
+}
+</style>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/config.js?v=<?php echo $v; ?>"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/feed.js?v=<?php echo $v; ?>"></script>
 
@@ -108,9 +150,9 @@
     <!-- instructions and settings -->
     <div class="px-3">
         <div class="row-fluid">
-            <div class="span9 xappconfig-description">
-                <div class="xappconfig-description-inner text-light">
-                    <h2 class="appconfig-title text-warning"><?php echo _('My Solar'); ?></h2>
+            <div class="span9 xapp-config-description">
+                <div class="xapp-config-description-inner text-light">
+                    <h2 class="app-config-title text-warning"><?php echo _('My Solar'); ?></h2>
                     <p class="lead">The My Solar app can be used to explore onsite solar generation, self consumption, export and building consumption both in realtime with a moving power graph view and historically with a daily and monthly bargraph.</p>
                     <p><strong class="text-white">Auto configure:</strong> This app can auto-configure connecting to emoncms feeds with the names shown on the right, alternatively feeds can be selected by clicking on the edit button.</p>
                     <p><strong class="text-white">Cumulative kWh</strong> feeds can be generated from power feeds with the power_to_kwh input processor.</p>
@@ -122,7 +164,7 @@
     </div>
 </section>
 
-<div class="ajax-loader"><img src="<?php echo $path; ?>Modules/app/images/ajax-loader.gif"/></div>
+<div class="ajax-loader"></div>
 <script src="<?php echo $path; ?>Lib/misc/gettext.js?v=<?php echo $v; ?>"></script> 
 <script>
 function getTranslations(){
@@ -158,7 +200,7 @@ $(window).ready(function(){
     $("#footer").css('background-color','#181818');
     $("#footer").css('color','#999');
 });
-if (!sessionwrite) $(".openconfig").addClass('hide');
+if (!sessionwrite) $(".config-open").addClass('hide');
 
 // ----------------------------------------------------------------------
 // Configuration
@@ -351,6 +393,7 @@ function resize()
     var height = $(window).height()*0.55;
 
     if (height>width) height = width;
+    if (height<180) height = 180;
 
     if($('#app-block').is(":visible")) {
         draw();
@@ -376,7 +419,9 @@ function livefn()
     var use_now = parseInt(feeds[config.app.use.value].value);
 
     if (autoupdate) {
-        var updatetime = feeds[config.app.solar.value].time;
+        var updatetimesolar = feeds[config.app.solar.value].time;
+        var updatetimeuse = feeds[config.app.use.value].time;
+        var updatetime = Math.max(updatetimesolar, updatetimeuse);
         timeseries.append("solar",updatetime,solar_now);
         timeseries.trim_start("solar",view.start*0.001);
         timeseries.append("use",updatetime,use_now);

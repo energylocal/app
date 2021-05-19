@@ -14,13 +14,28 @@ defined('EMONCMS_EXEC') or die('Restricted access');
 
 function app_controller()
 {
-    global $mysqli,$path,$session,$route,$user,$app_settings;
-    
+    global $mysqli,$path,$session,$route,$user,$settings,$v;
+    // Force cache reload of css and javascript
+    $v = 13;
+
     $result = false;
+    
+    // Apps can be hidden from the settings object e.g:
+    // [app]
+    // hidden = template
+    
+    if (isset($settings['app'])) {
+        if (isset($settings['app']['hidden'])) {
+            $settings['app']['hidden'] = explode(",",$settings['app']['hidden']);
+        }
+    } else {
+        $settings['app'] = array(
+        // 'hidden'=>array('template')
+        );
+    }
 
     require_once "Modules/app/app_model.php";
-    $v = 9;
-    $appconfig = new AppConfig($mysqli, $app_settings);
+    $appconfig = new AppConfig($mysqli, $settings['app']);
     $appavail = $appconfig->get_available();
 
     if ($route->action == "view") {
@@ -46,9 +61,8 @@ function app_controller()
             } else {
                 $app = urldecode(get("name"));
             }
-            
             if (!isset($applist->$app)) {
-                foreach ($applist as $key=>$val) { $app = $key; break; }
+                foreach (array_keys((array) $applist) as $key) { $app = $key; break; }
             }
             
             $route->format = "html";
@@ -97,7 +111,6 @@ function app_controller()
     else if ($route->action == "new" && $session['write']) {
         $applist = $appconfig->get_list($session['userid']);
         $route->format = "html";
-        $result = "<link href='".$path."Modules/app/Views/css/pagenav.css?v=1' rel='stylesheet'>";
         $result .= "<link href='".$path."Modules/app/Views/css/app.css?v=".$v."' rel='stylesheet'>";
         $result .= view("Modules/app/Views/app_view.php", array("apps"=>$appavail));
     }
@@ -119,12 +132,12 @@ function app_controller()
         $start = (float) get("start");
         $end = (float) get("end");
         $interval = (int) get("interval");
-        $result = json_decode(file_get_contents("http://emoncms.org/feed/data.json?id=$id&start=$start&end=$end&interval=$interval&skipmissing=0&limitinterval=0"));
+        $result = json_decode(file_get_contents("https://emoncms.org/feed/data.json?id=$id&start=$start&end=$end&interval=$interval&skipmissing=0&limitinterval=0"));
     }
     else if ($route->action == "valueremote") {
         $route->format = "json";
         $id = (int) get("id");
-        $result = (float) json_decode(file_get_contents("http://emoncms.org/feed/value.json?id=$id"));
+        $result = (float) json_decode(file_get_contents("https://emoncms.org/feed/value.json?id=$id"));
     }
     else if ($route->action == "ukgridremote") {
         $route->format = "json";

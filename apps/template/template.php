@@ -1,6 +1,5 @@
 <?php
-    global $path, $session;
-    $v = 7;
+    global $path, $session, $v;
 ?>
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
 <link href="<?php echo $path; ?>Modules/app/Views/css/dark.css?v=<?php echo $v; ?>" rel="stylesheet">
@@ -8,26 +7,42 @@
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/config.js?v=<?php echo $v; ?>"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/feed.js?v=<?php echo $v; ?>"></script>
 
+<style>
+.title {
+   margin-top:100px;
+   color:#aaa;
+   font-weight:bold;
+   font-size:32px;
+   line-height:32px;
+}
+.value {
+   color:#888;
+   font-weight:bold;
+   font-size:64px;
+   line-height:64px;
+}
+</style>
+
 <div id="app-block" style="display:none">
   <div class="col1"><div class="col1-inner">
   
     <div style="height:20px; border-bottom:1px solid #333; padding-bottom:8px;">
       <div style="float:right;">
-        <i class="openconfig icon-wrench icon-white" style="cursor:pointer; padding-right:5px;"></i>
+        <i class="config-open icon-wrench icon-white" style="cursor:pointer; padding-right:5px;"></i>
       </div>
     </div>
     <div style="text-align:center">
-      <div class="electric-title">POWER NOW</div>
-      <div class="power-value"><span id="powernow">0</span></div>
+      <div class="title">POWER NOW</div>
+      <div class="value"><span id="powernow">0</span></div>
     </div>
   
   </div></div>
 </div>    
 
 <div id="app-setup" style="display:none; padding-top:50px" class="block">
-    <h2 class="appconfig-title">Template</h2>
-    <div class="appconfig-description">
-        <div class="appconfig-description-inner">
+    <h2 class="app-config-title">Template</h2>
+    <div class="app-config-description">
+        <div class="app-config-description-inner">
             A basic app example useful for developing new apps
             
             <img src="<?php echo $path; ?><?php echo $appdir; ?>preview.png" style="width:600px" class="img-rounded">
@@ -36,7 +51,7 @@
     <div class="app-config"></div>
 </div>
 
-<div class="ajax-loader"><img src="<?php echo $path; ?>Modules/app/images/ajax-loader.gif"/></div>
+<div class="ajax-loader"></div>
 
 <script>
 
@@ -57,7 +72,7 @@ $(window).ready(function(){
     $("#footer").css('background-color','#181818');
     $("#footer").css('color','#999');
 });
-if (!sessionwrite) $(".openconfig").hide();
+if (!sessionwrite) $(".config-open").hide();
 
 // ----------------------------------------------------------------------
 // Configuration

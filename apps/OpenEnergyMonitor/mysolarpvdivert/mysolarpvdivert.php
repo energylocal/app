@@ -1,6 +1,5 @@
 <?php
-    global $path, $session;
-    $v = 8;
+    global $path, $session, $v;
 ?>
 
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
@@ -31,6 +30,7 @@
     width: 25%;
     text-align: center;
     vertical-align: middle;
+    background: #262626;
 }
 
 .statsbox-inner-unit {
@@ -124,6 +124,25 @@
   font-weight:bold;
   font-size:10px;
 }
+
+/*Small devices (landscape phones, 576px and up)*/
+@media (max-width: 576px) {
+  #statsbox-generation { padding-bottom:18px; }
+  .statsbox-padded { padding: 4px; }
+  .statsbox-title { font-size: 14px; padding-bottom: 5px; } /* 20px */
+  .statsbox-value { font-size:28px; } /* 36px */
+  .statsbox-units { font-size:14px; } /* 16px */
+  .statsbox-prc { font-size: 14px; } /* 16px */
+  .statsbox-arrow-down:after {
+    border-width: 10px;
+    margin-left: -10px;
+  }
+  .statsbox-arrow-right:after {
+    border-width: 10px;
+    margin-top: -10px;
+  }
+}
+
 </style>
 
 
@@ -186,9 +205,9 @@
         
     <table class="statstable">
         <tr>
-            <td class="statsbox" colspan="2">
-                <div class="statsbox-inner-unit" style="background: #dccc1f">
-                    <div class="statsbox-padded" style="position: relative;">
+            <td class="statsbox" colspan="2" style="background: #dccc1f">
+                <div class="statsbox-inner-unit">
+                    <div id="statsbox-generation" class="statsbox-padded" style="position: relative;">
                         <div class="statsbox-title"><span class="generationtitle">SOLAR</span></div>
                         <div><span class="statsbox-value total_generated_kwh">0</span> <span class="statsbox-units">kWh</span></div>
                         <div style="position: absolute; width: 50%; left: 0%; bottom: 0%">
@@ -208,16 +227,21 @@
                 </div>
             </td>
             
-            <td class="statsbox">
-                <div class="statsbox-inner-arrow">
-                    <div class="statsbox-padded statsbox-arrow-right"><span class="statsbox-value total_export_kwh">0</span> <span class="statsbox-units">kWh</span></div>
+            <td class="statsbox" style="background: #2ed52e">
+                <div class="statsbox-padded  statsbox-arrow-right">
+                    <div class="statsbox-title">EXPORT</div>
+                    <div><span class="statsbox-value total_export_kwh">0</span> <span class="statsbox-units">kWh</span></div>
                 </div>
             </td>
 
-            <td class="statsbox">
-                <div class="statsbox-padded statsbox-inner-unit" style="background: #d52e2e">
-                    <div class="statsbox-title">GRID</div>
-                    <div><span class="statsbox-value total_grid_balance_kwh">0</span> <span class="statsbox-units">kWh</span></div>
+            <td class="statsbox" style="background: #d52e2e">
+                <div class="statsbox-padded statsbox-inner-unit">
+                    <div class="statsbox-title">GRID<span class="statsbox-units"> (IMPORT / BALANCE)</span></div>
+                    <div>
+                        <span class="statsbox-value total_import_kwh">0</span> <span class="statsbox-units">kWh</span>
+                        <span class="statsbox-value"> / </span>
+                        <span class="statsbox-value total_grid_balance_kwh">0</span> <span class="statsbox-units">kWh</span>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -246,15 +270,15 @@
         </tr>
         
         <tr>
-            <td class="statsbox">
-                <div class="statsbox-padded statsbox-inner-unit" style="background: #fb7b50">
+            <td class="statsbox" style="background: #fb7b50">
+                <div class="statsbox-padded statsbox-inner-unit">
                     <div class="statsbox-title">DIVERT</div>
                     <div><span class="statsbox-value total_divert_kwh">0</span> <span class="statsbox-units">kWh</span></div>
                 </div>
             </td>
             
-            <td class="statsbox" colspan="3">
-                <div class="statsbox-inner-unit" style="background: #82cbfc">
+            <td class="statsbox" colspan="3" style="background: #82cbfc">
+                <div class="statsbox-inner-unit">
                     <div class="statsbox-padded" style="position: relative;">
                         <div class="statsbox-title">HOUSE</div>
                         <div><span class="statsbox-value total_house_kwh">0</span> <span class="statsbox-units">kWh</span></div>
@@ -276,9 +300,9 @@
     <!-- instructions and settings -->
     <div class="px-3">
         <div class="row-fluid">
-            <div class="span9 xappconfig-description">
-                <div class="xappconfig-description-inner text-light">
-                    <h2 class="appconfig-title text-warning"><?php echo _('My Solar Divert'); ?></h2>
+            <div class="span9 xapp-config-description">
+                <div class="xapp-config-description-inner text-light">
+                    <h2 class="app-config-title text-warning"><?php echo _('My Solar Divert'); ?></h2>
                     <p class="lead">
                     The My Solar with Divert app can be used to explore onsite solar (and optionally wind) generation, self consumption, export and building consumption.</p>
                     <p>It is designed for users who divert some or all of their excess generated power to something. For example an immersion heater or electric car. It shows all of this both in realtime with a moving power graph view and historically with a daily and monthly bargraph.
@@ -294,7 +318,7 @@
 </section>
 
 
-<div class="ajax-loader"><img src="<?php echo $path; ?>Modules/app/images/ajax-loader.gif"/></div>
+<div class="ajax-loader"></div>
 
 <script src="<?php echo $path; ?>Lib/misc/gettext.js?v=<?php echo $v; ?>"></script> 
 <script>
@@ -323,7 +347,7 @@ $(window).ready(function(){
     $("#footer").css('background-color','#181818');
     $("#footer").css('color','#999');
 });
-if (!sessionwrite) $(".openconfig").hide();
+if (!sessionwrite) $(".config-open").hide();
 
 // ----------------------------------------------------------------------
 // Configuration
@@ -469,6 +493,7 @@ function resize()
     var height = $(window).height()*(is_landscape ? 0.3: 0.6);
 
     if (height>width) height = width;
+    if (height<180) height = 180;
 
     placeholder.width(width);
     placeholder_bound.height(height);

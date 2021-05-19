@@ -34,7 +34,9 @@ class AppConfig
         $it = new RecursiveIteratorIterator($dirs);
         foreach($it as $file) {
             // Restrict iteration to two levels
-            if ($it->getDepth() > 2) continue;
+            if ($it->getDepth() > 2) {
+                continue;
+            }
             
             // Replace all backslashes to avoid conflicts with paths on windows machines
             $file = str_replace('\\', '/', $file);
@@ -46,7 +48,7 @@ class AppConfig
                     $content['dir'] = stripslashes($dir.'/');
                     
                     $id = basename($dir);
-                    if ($id != 'template' && (!isset($this->settings) || !isset($this->settings['hidden']) 
+                    if ((!isset($this->settings) || !isset($this->settings['hidden']) 
                         || !in_array($id, $this->settings['hidden']))) {
                         
                         $list[$id] = $content;
