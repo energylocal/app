@@ -1,16 +1,17 @@
 <?php
+    defined('EMONCMS_EXEC') or die('Restricted access');
     global $path, $session, $v;
 ?>
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
 <link href="<?php echo $path; ?>Modules/app/Views/css/dark.css?v=<?php echo $v; ?>" rel="stylesheet">
 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/config.js?v=<?php echo $v; ?>"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/feed.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Modules/feed/feed.js?v=<?php echo $v; ?>"></script>
 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/graph_bars.js?v=<?php echo $v; ?>"></script> 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/graph_lines.js?v=<?php echo $v; ?>"></script> 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/timeseries.js?v=<?php echo $v; ?>"></script> 
-<script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/vis.helper.js?v=<?php echo $v; ?>"></script> 
+<script type="text/javascript" src="<?php echo $path; ?>Lib/vis.helper.js?v=<?php echo $v; ?>"></script> 
 
 <nav id="buttons" class="d-flex justify-content-between">
     <ul id="tabs" class="nav nav-pills mb-0">
@@ -365,15 +366,8 @@ function fastupdate(event)
     // reload power data
     if (reload) {
         reload = false;
-        
-        var npoints = 1500;
-        interval = Math.round(((view.end - view.start)/npoints)/1000);
-        if (interval<1) interval = 1;
-        
-        view.start = 1000*Math.floor((view.start/1000)/interval)*interval;
-        view.end = 1000*Math.ceil((view.end/1000)/interval)*interval;
-        
-        timeseries.load("use",feed.getdata(use,view.start,view.end,interval,0,0));
+        view.calc_interval(1500); // npoints = 1500
+        timeseries.load("use",feed.getdata(use,view.start,view.end,view.interval,0,0,0));
     }
     
     // --------------------------------------------------------------------
@@ -472,7 +466,7 @@ function fastupdate(event)
 
     var time = new Date(now.getFullYear(),now.getMonth(),now.getDate()-dayofweek).getTime();
     if (time!=last_startofweektime) {
-        startofweek = feed.getvalue(use_kwh,time);
+        startofweek = feed.getvalue(use_kwh,time*0.001);
         last_startofweektime = time;
     }
     if (startofweek===false) startofweek = [startalltime*1000,0];
@@ -486,7 +480,7 @@ function fastupdate(event)
     // MONTH: repeat same process as above (scale is unitcost)
     var time = new Date(now.getFullYear(),now.getMonth(),1).getTime();
     if (time!=last_startofmonthtime) {
-        startofmonth = feed.getvalue(use_kwh,time);
+        startofmonth = feed.getvalue(use_kwh,time*0.001);
         last_startofmonthtime = time;
     }
     if (startofmonth===false) startofmonth = [startalltime*1000,0];
@@ -500,7 +494,7 @@ function fastupdate(event)
     // YEAR: repeat same process as above (scale is unitcost)
     var time = new Date(now.getFullYear(),0,1).getTime();
     if (time!=last_startofyeartime) {
-        startofyear = feed.getvalue(use_kwh,time);
+        startofyear = feed.getvalue(use_kwh,time*0.001);
         last_startofyeartime = time;
     }
     if (startofyear===false) startofyear = [startalltime*1000,0];     
@@ -542,7 +536,7 @@ function slowupdate()
     var end = Math.floor(now.getTime() * 0.001);
     var start = end - interval * Math.round(graph_bars.width/30);
     
-    var result = feed.getdataDMY(use_kwh,start*1000,end*1000,"daily");
+    var result = feed.getdata(use_kwh,start*1000,end*1000,"daily");
 
     var data = [];
     // remove nan values from the end.

@@ -1,17 +1,18 @@
 <?php
+    defined('EMONCMS_EXEC') or die('Restricted access');
     global $path, $session, $v;
 ?>
 <link href="<?php echo $path; ?>Modules/app/Views/css/config.css?v=<?php echo $v; ?>" rel="stylesheet">
 <link href="<?php echo $path; ?>Modules/app/Views/css/dark.css?v=<?php echo $v; ?>" rel="stylesheet">
 
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/config.js?v=<?php echo $v; ?>"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/feed.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Modules/feed/feed.js?v=<?php echo $v; ?>"></script>
 
 <script type="text/javascript" src="<?php echo $path; ?>Lib/flot/jquery.flot.min.js?v=<?php echo $v; ?>"></script> 
 <script type="text/javascript" src="<?php echo $path; ?>Lib/flot/jquery.flot.time.min.js?v=<?php echo $v; ?>"></script> 
 <script type="text/javascript" src="<?php echo $path; ?>Lib/flot/jquery.flot.selection.min.js?v=<?php echo $v; ?>"></script> 
 <script type="text/javascript" src="<?php echo $path; ?>Lib/flot/date.format.js?v=<?php echo $v; ?>"></script>
-<script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/vis.helper.js?v=<?php echo $v; ?>"></script>
+<script type="text/javascript" src="<?php echo $path; ?>Lib/vis.helper.js?v=<?php echo $v; ?>"></script>
 <script type="text/javascript" src="<?php echo $path; ?>Modules/app/Lib/timeseries.js?v=<?php echo $v; ?>"></script>
 <nav id="buttons" class="d-flex justify-content-between">
     <ul id="tabs" class="nav nav-pills mb-0">
@@ -127,7 +128,7 @@ function getTranslations(){
 // ----------------------------------------------------------------------
 // Globals
 // ----------------------------------------------------------------------
-var apikey = "<?php print $apikey; ?>";
+var apikey = "<?php echo $apikey; ?>";
 var sessionwrite = <?php echo $session['write']; ?>;
 
 apikeystr = ""; 
@@ -268,7 +269,7 @@ function livefn()
         solar_now = parseInt(feeds[config.app.solar.value].value);
         
     var use_now = parseInt(feeds[config.app.use.value].value);
-    var gridwind = feed.getvalueremote(67088);
+    var gridwind = getvalueremote(67088);
     var average_power = ((config.app.windkwh.value/365.0)/0.024);
     var wind_now = Math.round((average_power / average_wind_power) * gridwind);
 
@@ -355,33 +356,22 @@ function draw_powergraph() {
         selection: { mode: "x" }
     }
     
-    var npoints = 1500;
-    interval = Math.round(((view.end - view.start)/npoints)/1000);
-    interval = view.round_interval(interval);
-    if (interval<10) interval = 10;
-    var intervalms = interval * 1000;
-
-    view.start = Math.ceil(view.start/intervalms)*intervalms;
-    view.end = Math.ceil(view.end/intervalms)*intervalms;
-
-    var npoints = parseInt((view.end-view.start)/(interval*1000));
+    view.calc_interval(1500); // npoints = 1500
     
     // -------------------------------------------------------------------------------------------------------
     // LOAD DATA ON INIT OR RELOAD
     // -------------------------------------------------------------------------------------------------------
     if (reload) {
         reload = false;
-        view.start = 1000*Math.floor((view.start/1000)/interval)*interval;
-        view.end = 1000*Math.ceil((view.end/1000)/interval)*interval;
 
         var feedid = config.app.solar.value;
         if (feedid!=false)
-            timeseries.load("solar",feed.getdata(feedid,view.start,view.end,interval,0,0));
+            timeseries.load("solar",feed.getdata(feedid,view.start,view.end,view.interval,0,0,0));
         
         var feedid = config.app.use.value;
-        timeseries.load("use",feed.getdata(config.app.use.value,view.start,view.end,interval,0,0));
+        timeseries.load("use",feed.getdata(config.app.use.value,view.start,view.end,view.interval,0,0,0));
         
-        timeseries.load("remotewind",feed.getdataremote(67088,view.start,view.end,interval));    
+        timeseries.load("remotewind",getdataremote(67088,view.start,view.end,view.interval));   
     }
     // -------------------------------------------------------------------------------------------------------
     
@@ -405,6 +395,7 @@ function draw_powergraph() {
     
     var datastart = timeseries.start_time("use");
     
+    var interval = view.interval;
     for (var z=0; z<timeseries.length("use"); z++) {
 
         // -------------------------------------------------------------------------------------------------------
@@ -505,5 +496,44 @@ $(function() {
 function app_log (level, message) {
     if (level=="ERROR") alert(level+": "+message);
     console.log(level+": "+message);
+}
+
+// ----------------------------------------------------------------------
+// Remote data requests
+// ----------------------------------------------------------------------
+function getdataremote(id,start,end,interval)
+{   
+    var data = [];
+    $.ajax({                                      
+        url: path+"app/dataremote",
+        data: {id:id,start:start,end:end,interval:interval,skipmissing:0,limitinterval:0},
+        dataType: 'json',
+        async: false,                      
+        success: function(result) {
+            if (!result || result===null || result==="" || result.constructor!=Array) {
+                console.log("ERROR","feed.getdataremote invalid response: "+result);
+                result = [];
+            }
+            data = result;
+        }
+    });
+    return data;
+}
+
+function getvalueremote(id)
+{   
+    var value = 0;
+    $.ajax({                                      
+        url: path+"app/valueremote",                       
+        data: {id:id}, dataType: 'json', async: false,                      
+        success: function(result) {
+            if (isNaN(result)) {
+                console.log("ERROR","feed.getvalueremote value is not a number, found: "+result);
+                result = 0;
+            }
+            value = parseFloat(result);
+        }
+    });
+    return value;
 }
 </script>
